@@ -1,0 +1,13 @@
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\bin\Debug\Effizienze_Graphentheorie.exe.config
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\bin\Debug\Effizienze_Graphentheorie.exe
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\bin\Debug\Effizienze_Graphentheorie.pdb
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\Effizienze_Graphentheorie.csprojResolveAssemblyReference.cache
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\MainWindow.baml
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\MainWindow.g.cs
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\App.g.cs
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\Effizienze_Graphentheorie_MarkupCompile.cache
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\Effizienze_Graphentheorie.g.resources
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\Effizienze_Graphentheorie.Properties.Resources.resources
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\Effizienze_Graphentheorie.csproj.GenerateResource.Cache
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\Effizienze_Graphentheorie.exe
+C:\Programming\C#\Effiziente Graphentheorie\Effizienze_Graphentheorie\Effizienze_Graphentheorie\obj\Debug\Effizienze_Graphentheorie.pdb
