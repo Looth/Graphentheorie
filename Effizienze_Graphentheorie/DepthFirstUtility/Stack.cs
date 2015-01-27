@@ -43,5 +43,13 @@ namespace Effizienze_Graphentheorie.Graph
             return count == 0;
         }
 
+        public T[] GetAsArray()
+        {
+            T[] ret = new T[count];
+            for (int i = 0; i < count; i++)
+                ret[i] = items[i];
+            return ret;
+        } 
+
     }
 }

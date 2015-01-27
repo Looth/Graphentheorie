@@ -13,12 +13,10 @@ namespace Effizienze_Graphentheorie.Graph
     class DirectedGraph
     {
         private List<Node> nodes;
-        private List<Arc> arcs;
 
         public DirectedGraph()
         {
             nodes = new List<Node>();
-            arcs = new List<Arc>();
         }
 
         public void AddNode(Node node)
@@ -28,39 +26,13 @@ namespace Effizienze_Graphentheorie.Graph
 
         public void AddArc(Arc a)
         {
-            arcs.Add(a);
+            a.Start.AddArc(a);
         }
 
 
 
         public void Draw(int circleSize)
         {
-
-            foreach (Arc a in arcs)
-            {
-                Line l = a.Representation;
-
-                l.Stroke = Brushes.Black;
-                l.StrokeThickness = 1;
-
-                l.X1 = a.Start.XPos;
-                l.Y1 = a.Start.YPos;
-
-                l.X2 = a.End.XPos;
-                l.Y2 = a.End.YPos;
-
-                //c.Children.Add(getCurve(new Point(a.Start.XPos, a.Start.YPos), new Point(a.End.XPos, a.End.YPos)));
-
-
-                TextBlock capacity = a.Label;
-                capacity.Text = a.Capacity + "/" + a.MaxCapacity;
-                capacity.Background = Brushes.White;
-
-                Canvas.SetTop(capacity, l.Y1 + 0.8 * (l.Y2 - l.Y1) - capacity.ActualHeight / 2);
-                Canvas.SetLeft(capacity, l.X1 + 0.8 * (l.X2 - l.X1) - capacity.ActualWidth / 2);
-
-
-            }
 
             foreach (Node n in nodes)
             {
@@ -74,6 +46,30 @@ namespace Effizienze_Graphentheorie.Graph
                 e.StrokeThickness = 2;
                 e.Fill = Brushes.White;
                 e.DataContext = n;
+
+                foreach (Arc a in n.Outgoing)
+                {
+                    Line l = a.Representation;
+
+                    l.Stroke = Brushes.Black;
+                    l.StrokeThickness = 1;
+
+                    l.X1 = a.Start.XPos;
+                    l.Y1 = a.Start.YPos;
+
+                    l.X2 = a.End.XPos;
+                    l.Y2 = a.End.YPos;
+
+                    //c.Children.Add(getCurve(new Point(a.Start.XPos, a.Start.YPos), new Point(a.End.XPos, a.End.YPos)));
+
+
+                    TextBlock capacity = a.CapacityText;
+                    capacity.Text = a.Capacity + "/" + a.MaxCapacity;
+                    capacity.Background = Brushes.White;
+
+                    Canvas.SetTop(capacity, l.Y1 + 0.8 * (l.Y2 - l.Y1) - capacity.ActualHeight / 2);
+                    Canvas.SetLeft(capacity, l.X1 + 0.8 * (l.X2 - l.X1) - capacity.ActualWidth / 2);
+                }
             }
             
         }
@@ -81,15 +77,25 @@ namespace Effizienze_Graphentheorie.Graph
         public void putOnCanvas(Canvas c, int circleSize)
         {
             c.Children.Clear();
-            foreach (Arc a in arcs)
-                c.Children.Add(a.Representation);
-            foreach (Arc a in arcs)
-                c.Children.Add(a.Label);
+            
+            //add arcs first so they are the lowest element
+            foreach(Node n in nodes)
+                foreach (Arc a in n.Outgoing)
+                    c.Children.Add(a.Representation);
+
+            //now add capacities so they lay on top of arcs
+            foreach(Node n in nodes)
+                foreach (Arc a in n.Outgoing)
+                    c.Children.Add(a.CapacityText);
+
+            //at last add nodes themself so they will be on top of arcs and capacities 
             foreach (Node n in nodes)
                 c.Children.Add(n.Representation);
             this.Draw(circleSize);
         }
 
+
+        //not used at the moment, might be used to generate curved arcs
         private Shape getCurve(Point from, Point to)
         {
             ArcSegment arcs = new ArcSegment(to, new Size(800,800), 45, false, SweepDirection.Clockwise, true);
@@ -114,5 +120,26 @@ namespace Effizienze_Graphentheorie.Graph
             return path;
         }
 
+
+        public Arc[] DepthFirstSearchPath(Node start, Node end)
+        {
+            //First lets start preprocessing/induction basis
+
+            Stack<DepthFirstNode> stack = new Stack<DepthFirstNode>(nodes.Count);
+
+            //give each node 2 flags and add a outgoing arc and a 
+            DepthFirstNode[] depthNodes = new DepthFirstNode[nodes.Count];
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                depthNodes[i] = new DepthFirstNode(nodes[i]);
+                if (nodes[i] == start)
+                {
+                    depthNodes[i].IsSeen = true;
+                    stack.Push(depthNodes[i]);
+                }
+            }
+
+            throw new NotImplementedException("don't be lazy like me!");
+        }
     }
 }

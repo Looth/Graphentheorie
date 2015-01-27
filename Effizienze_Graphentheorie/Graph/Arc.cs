@@ -16,16 +16,16 @@ namespace Effizienze_Graphentheorie.Graph
         int capacity;
 
         Line representation;
-        TextBlock label;
+        TextBlock capacityText;
 
         public Line Representation
         {
             get { return representation; }
         }
 
-        public TextBlock Label
+        public TextBlock CapacityText
         {
-            get { return label; }
+            get { return capacityText; }
         }
 
         public Arc(Node start, Node end, int maxCapacity)
@@ -35,7 +35,7 @@ namespace Effizienze_Graphentheorie.Graph
             this.maxCapacity = maxCapacity;
             this.capacity = 0;
             this.representation = new Line();
-            this.label = new TextBlock();
+            this.capacityText = new TextBlock();
         }
 
         public Node Start
