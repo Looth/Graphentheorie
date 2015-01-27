@@ -38,7 +38,7 @@ namespace Effizienze_Graphentheorie
             
 
             RndGraphGenerator generator = new RndGraphGenerator(circleSize, (int) canvas.ActualHeight, (int) canvas.ActualWidth);
-            graph = generator.GenerateGraph(20, 100);
+            graph = generator.GenerateGraph(20, 100, circleSize);
             graph.putOnCanvas(canvas, circleSize);
             source = null;
             drain = null;
@@ -63,6 +63,7 @@ namespace Effizienze_Graphentheorie
             text.Text = "Please select a drain";
             Ellipse ellipse = sender as Ellipse;
             source = ellipse.DataContext as Node;
+            graph.Source = source;
 
             foreach (UIElement e in canvas.Children)
             {
@@ -81,6 +82,7 @@ namespace Effizienze_Graphentheorie
             text.Text = "Please select a algorithm";
 
             drain = ellipse.DataContext as Node;
+            graph.Drain = drain;
 
             foreach (UIElement e in canvas.Children)
             {
@@ -112,6 +114,12 @@ namespace Effizienze_Graphentheorie
             n.XPos = (int)e.GetPosition(canvas).X;
             n.YPos = (int)e.GetPosition(canvas).Y;
             graph.Draw(circleSize);
+        }
+
+        private void FordFulkersonStep(object sender, RoutedEventArgs e)
+        {
+            if (source != null && drain != null)
+                graph.FordFulkersonStep();
         }
 
     }

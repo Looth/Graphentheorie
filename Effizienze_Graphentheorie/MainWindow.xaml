@@ -14,5 +14,6 @@
         <TextBlock Grid.Column="1" Grid.Row="0" Background="White" Name="text">Please generate a graph</TextBlock>
         <Canvas Name="canvas" Grid.Column="1" Grid.Row="1" Background="White" Grid.RowSpan="2"></Canvas>
         <Button Height="50" Click="GenerateGraph" Margin="0,0,0,152" Grid.RowSpan="2">Generate Graph</Button>
+        <Button Height="50" Click="FordFulkersonStep" Margin="0,314,0,386" Grid.Row="1">Ford Fulkerson Step</Button>
     </Grid>
 </Window>

@@ -3,32 +3,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace Effizienze_Graphentheorie.Graph
 {
     class Node
     {
+        private List<Arc> outgoing;
+
+        /**
+         * These Values are used for Representation
+         */ 
+        private int circleSize;
         private int xPos;
         private int yPos;
         private string label;
-
-        private List<Arc> outgoing;
-
         Ellipse representation;
+        
+        /*
+         * These Values are used for Depth first search
+         */
+        private bool isSeen;
+        private bool isFinished;
+        int count;
+
 
         public Ellipse Representation
         {
             get { return representation; }
         }
 
-        public Node(int xPos, int yPos, string label)
+        public Node(int xPos, int yPos, string label, int circleSize)
         {
             this.xPos = xPos;
             this.yPos = yPos;
             this.label = label;
             this.outgoing = new List<Arc>();
             this.representation = new Ellipse();
+
+            representation.Height = circleSize;
+            representation.Width = circleSize;
+            representation.Stroke = Brushes.Black;
+            representation.StrokeThickness = 2;
+            representation.Fill = Brushes.White;
+            representation.DataContext = this;
         }
 
         public int XPos
@@ -59,5 +79,33 @@ namespace Effizienze_Graphentheorie.Graph
             int y = yPos - n2.yPos;
             return Math.Sqrt(x * x + y * y);
         }
+
+        public bool IsSeen
+        {
+            get { return isSeen; }
+            set { isSeen = value; }
+        }
+
+        public bool IsFinished
+        {
+            get { return isFinished; }
+            set { isFinished = value; }
+        }
+
+        public void reset()
+        {
+            count = 0;
+            IsFinished = false;
+            isSeen = false;
+        }
+
+        public Arc getNextArc()
+        {
+            if (count >= outgoing.Count())
+                return null;
+            return outgoing[count++];
+        }
+
+
     }
 }

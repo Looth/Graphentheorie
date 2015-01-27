@@ -19,7 +19,7 @@ namespace Effizienze_Graphentheorie.Graph
             this.canvasWidth = canvasWidth;
         }
 
-        public DirectedGraph GenerateGraph(int nodeCount, int maxCapacity)
+        public DirectedGraph GenerateGraph(int nodeCount, int maxCapacity, int circleSize)
         {
             DirectedGraph result = new DirectedGraph();
             Node[] createdNodes = new Node[nodeCount];
@@ -32,7 +32,7 @@ namespace Effizienze_Graphentheorie.Graph
             {
                 int xpos = (int) (circleSize / 2.0 + random.NextDouble() * (canvasWidth - circleSize));
                 int ypos = (int) (circleSize / 2.0 + random.NextDouble() * (canvasHeight - circleSize));
-                Node node = new Node(xpos, ypos, nodesCreated.ToString());
+                Node node = new Node(xpos, ypos, nodesCreated.ToString(), circleSize);
                 bool passed = true;
                 List<Triple> distanceToNewNode = new List<Triple>();
                 for (int i = 0; i < nodesCreated; i++)
@@ -84,8 +84,12 @@ namespace Effizienze_Graphentheorie.Graph
 
             foreach (Triple t in distances)
             {
-                result.AddArc(new Arc(t.n1, t.n2, random.Next(maxCapacity)));
-                result.AddArc(new Arc(t.n2, t.n1, random.Next(maxCapacity)));
+                Arc way = new Arc(t.n1, t.n2, random.Next(maxCapacity));
+                Arc reverseWay = new Arc(t.n2, t.n1, random.Next(maxCapacity));
+                way.ReverseArc = reverseWay;
+                reverseWay.ReverseArc = way;
+                result.AddArc(way);
+                result.AddArc(reverseWay);
             }
 
             return result;

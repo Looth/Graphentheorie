@@ -61,9 +61,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DepthFirstUtility\DepthFirstArc.cs" />
     <Compile Include="Graph\Arc.cs" />
-    <Compile Include="DepthFirstUtility\DepthFirstNode.cs" />
     <Compile Include="Graph\DirectedGraph.cs" />
     <Compile Include="Graph\Node.cs" />
     <Compile Include="Graph\RndGraphGenerator.cs" />

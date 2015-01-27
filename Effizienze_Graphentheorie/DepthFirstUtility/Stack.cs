@@ -28,14 +28,14 @@ namespace Effizienze_Graphentheorie.Graph
         {
             if (count == 0)
                 throw new Exception("Stack is empty!");
-            return items[count--];
+            return items[--count];
         }
 
         public T Peek()
         {
             if (count == 0)
                 throw new Exception("Stack is empty!");
-            return items[count];
+            return items[count - 1];
         }
 
         public bool IsEmpty()
