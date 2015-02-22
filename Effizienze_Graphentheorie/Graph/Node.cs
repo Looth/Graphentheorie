@@ -16,18 +16,18 @@ namespace Effizienze_Graphentheorie.Graph
         /**
          * These Values are used for Representation
          */ 
-        private int circleSize;
         private int xPos;
         private int yPos;
         private string label;
         Ellipse representation;
         
         /*
-         * These Values are used for Depth first search
+         * These Values are used for Depth/Breadth first search
          */
         private bool isSeen;
         private bool isFinished;
         int count;
+        Arc preceding;
 
 
         public Ellipse Representation
@@ -97,6 +97,18 @@ namespace Effizienze_Graphentheorie.Graph
             count = 0;
             IsFinished = false;
             isSeen = false;
+            preceding = null;
+        }
+
+        public Arc Preceding
+        {
+            set
+            {
+                if (value.End != this)
+                    throw new Exception("This can't be the preceding Arc");
+                preceding = value;
+            }
+            get { return preceding; }
         }
 
         public Arc getNextArc()

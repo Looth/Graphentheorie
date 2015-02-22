@@ -26,7 +26,7 @@ namespace Effizienze_Graphentheorie
         Node source = null;
         Node drain = null;
         DirectedGraph graph = null;
-        int circleSize = 20;
+        int circleSize = 50;
         public MainWindow()
         {
             InitializeComponent();
@@ -38,7 +38,7 @@ namespace Effizienze_Graphentheorie
             
 
             RndGraphGenerator generator = new RndGraphGenerator(circleSize, (int) canvas.ActualHeight, (int) canvas.ActualWidth);
-            graph = generator.GenerateGraph(20, 100, circleSize);
+            graph = generator.GenerateGraph(10, 50, circleSize);
             graph.putOnCanvas(canvas, circleSize);
             source = null;
             drain = null;
@@ -119,8 +119,40 @@ namespace Effizienze_Graphentheorie
         private void FordFulkersonStep(object sender, RoutedEventArgs e)
         {
             if (source != null && drain != null)
-                graph.FordFulkersonStep();
+                graph.FordFulkersonStep(text);
         }
 
+        private void EdmondsKarpStep(object sender, RoutedEventArgs e)
+        {
+            if (source != null && drain != null)
+                graph.EdmondsKarpStep(text);
+        }
+
+
+        DirectedGraph BuildSpecialGraph()
+        {
+            DirectedGraph g = new DirectedGraph();
+            Node n1 = new Node(10, 150, "1", 20);
+            Node n2 = new Node(200, 30, "2", 20);
+            Node n3 = new Node(200, 120, "3", 20);
+            Node n4 = new Node(400, 150, "4", 20);
+            Arc a1 = new Arc(n1, n2, 1);
+            Arc a2 = new Arc(n1, n3, 1);
+            Arc a3 = new Arc(n2, n3, 1);
+            Arc a4 = new Arc(n2, n4, 1);
+            Arc a5 = new Arc(n3, n4, 1);
+
+            g.AddNode(n1);
+            g.AddNode(n2);
+            g.AddNode(n3);
+            g.AddNode(n4);
+
+            g.AddArc(a1);
+            g.AddArc(a3);
+            g.AddArc(a5);
+            g.AddArc(a2);
+            g.AddArc(a4);
+            return g;
+        }
     }
 }

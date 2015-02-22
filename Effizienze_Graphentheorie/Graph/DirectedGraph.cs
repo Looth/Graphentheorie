@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Effizienze_Graphentheorie.BreadthFirstUtility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -176,6 +177,52 @@ namespace Effizienze_Graphentheorie.Graph
             return ret.GetAsArray();
         }
 
+        private Arc[] BreadthFirstPath(Node start, Node end)
+        {
+            Fifo<Node> fifo = new Fifo<Node>(nodes.Count);
+            foreach (Node n in nodes)
+                n.reset();
+
+            start.IsSeen = true;
+            fifo.AddItem(start);
+
+            bool foundPath = false;
+
+            while(!fifo.IsEmpty() && !foundPath)
+            {
+                Node n = fifo.GetItem();
+                foreach (Arc a in n.Outgoing)
+                {
+                    if (a.End.IsSeen || a.Capacity == a.MaxCapacity)
+                        continue;
+                    
+                    a.End.IsSeen = true;
+                    a.End.Preceding = a;
+                    fifo.AddItem(a.End);
+                    if (a.End == end)
+                    {
+                        foundPath = true;
+                        break;
+                    }
+                }
+            }
+
+            if (fifo.IsEmpty())
+                throw new Exception("Did not find Path");
+
+            List<Arc> path = new List<Arc>();
+
+            Node prec = end;
+            while (prec.Preceding != null)
+            {
+                path.Add(prec.Preceding);
+                prec = end.Preceding.Start;
+            }
+
+            path.Reverse();
+            return path.ToArray<Arc>();
+        }
+
         private void resetColor()
         {
             foreach (Node n in nodes)
@@ -191,23 +238,126 @@ namespace Effizienze_Graphentheorie.Graph
             drain.Representation.Fill = Brushes.Yellow;
         }
 
-        public void FordFulkersonStep()
+        private void BuildResidualGraph()
+        {
+            List<Arc> residual = new List<Arc>();
+            foreach (Node n in nodes)
+            {
+                foreach(Arc a in n.Outgoing)
+                {
+                    residual.Add(a.GetResidual());
+                }
+            }
+            foreach (Arc a in residual)
+            {
+                AddArc(a);
+            }
+        }
+
+        private void DestroyResiduals()
+        {
+            foreach (Node n in nodes)
+            {
+                n.Outgoing.RemoveAll(item => item.IsResidual);
+            }
+        }
+
+        public void FordFulkersonStep(TextBlock text)
         {
             this.resetColor();
-            Arc[] path = DepthFirstSearchPath(source, drain);
+            BuildResidualGraph();
+            Arc[] path;
+            try
+            {
+                path = DepthFirstSearchPath(source, drain);
+            }
+            catch (Exception)
+            {
+                DestroyResiduals();
+                return;
+            }
             int maxCap = int.MaxValue;
+            
             foreach (Arc a in path)
             {
-                maxCap = Math.Min(a.MaxCapacity, maxCap);
-                a.Representation.Stroke = Brushes.Red;
-                a.ReverseArc.Representation.Stroke = Brushes.Red;
+                maxCap = Math.Min(a.MaxCapacity - a.Capacity, maxCap);
+            }
+
+            text.Text = "Increased flow by " + maxCap;
+
+            foreach (Arc a in path)
+            {
+                if (a.IsResidual)
+                    a.Origin.Capacity -= maxCap;
+                else
+                    a.Capacity += maxCap;
             }
 
             foreach (Arc a in path)
             {
-                a.Capacity = maxCap;
+                if (a.IsResidual)
+                {
+                    a.Origin.Representation.Stroke = Brushes.Green;
+                    if (a.Origin.ReverseArc != null)
+                        a.Origin.ReverseArc.Representation.Stroke = Brushes.Green;
+                    
+                }
+                else
+                {
+                    a.Representation.Stroke = Brushes.Red;
+                    if(a.ReverseArc != null)
+                        a.ReverseArc.Representation.Stroke = Brushes.Red;
+                }
+                
             }
 
+            DestroyResiduals();
+        }
+
+        public void EdmondsKarpStep(TextBlock text)
+        {
+            this.resetColor();
+            this.BuildResidualGraph();
+            Arc[] path;
+            
+            path = BreadthFirstPath(source, drain);
+            
+            int maxCap = int.MaxValue;
+            
+            foreach (Arc a in path)
+            {
+                maxCap = Math.Min(a.MaxCapacity - a.Capacity, maxCap);
+            }
+
+            text.Text = "Increased flow by " + maxCap;
+
+            foreach (Arc a in path)
+            {
+                if (a.IsResidual)
+                    a.Origin.Capacity -= maxCap;
+                else
+                    a.Capacity += maxCap;
+            }
+
+            foreach (Arc a in path)
+            {
+                if (a.IsResidual)
+                {
+                    a.Origin.Representation.Stroke = Brushes.Green;
+                    if (a.Origin.ReverseArc != null)
+                        a.Origin.ReverseArc.Representation.Stroke = Brushes.Green;
+                    
+                }
+                else
+                {
+                    a.Representation.Stroke = Brushes.Red;
+                    if(a.ReverseArc != null)
+                        a.ReverseArc.Representation.Stroke = Brushes.Red;
+                }
+                
+            }
+
+            DestroyResiduals();
         }
     }
 }
