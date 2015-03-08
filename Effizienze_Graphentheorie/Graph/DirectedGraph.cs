@@ -1,9 +1,11 @@
 ﻿using Effizienze_Graphentheorie.BreadthFirstUtility;
+using Effizienze_Graphentheorie.DataExport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -15,26 +17,30 @@ namespace Effizienze_Graphentheorie.Graph
     {
         private List<Node> nodes;
         private Node source;
-        private Node drain;
 
-        public Node Source
+       
+
+        private Node drain;
+        
+
+        public void SetSource(Node value, Canvas c = null)
         {
-            get { return source; }
-            set
-            {
-                this.source = value;
-                value.Representation.Fill = Brushes.Blue;
-            }
+            this.source = value;
+            if (c != null)
+                value.SetAsSource(c);
+            else
+                value.IsSource = true;
+            value.Representation.Fill = Brushes.LightBlue;
         }
 
-        public Node Drain
+        public void SetDrain(Node value, Canvas c = null)
         {
-            get { return Drain; }
-            set
-            {
-                this.drain = value;
-                value.Representation.Fill = Brushes.Yellow;
-            }
+            this.drain = value;
+            if (c != null)
+                value.SetAsDrain(c);
+            else
+                value.IsDrain = true;
+            value.Representation.Fill = Brushes.Yellow;
         }
 
 
@@ -51,20 +57,21 @@ namespace Effizienze_Graphentheorie.Graph
 
         public void AddArc(Arc a)
         {
-            a.Start.AddArc(a);
+            a.Start.AddOutgoingArc(a);
+            a.End.AddIncomingArc(a);
         }
 
 
 
-        public void Draw(int circleSize)
+        public void Draw()
         {
 
             foreach (Node n in nodes)
             {
 
                 Ellipse e = n.Representation;
-                Canvas.SetTop(e, n.YPos - circleSize / 2);
-                Canvas.SetLeft(e, n.XPos - circleSize / 2);
+                Canvas.SetTop(e, n.YPos - MainWindow.circleSize / 2);
+                Canvas.SetLeft(e, n.XPos - MainWindow.circleSize / 2);
 
                 foreach (Arc a in n.Outgoing)
                 {
@@ -90,7 +97,7 @@ namespace Effizienze_Graphentheorie.Graph
 
         }
 
-        public void putOnCanvas(Canvas c, int circleSize)
+        public void PutOnCanvas(Canvas c, int circleSize)
         {
             c.Children.Clear();
 
@@ -104,10 +111,16 @@ namespace Effizienze_Graphentheorie.Graph
                 foreach (Arc a in n.Outgoing)
                     c.Children.Add(a.CapacityText);
 
+
             //at last add nodes themself so they will be on top of arcs and capacities 
             foreach (Node n in nodes)
                 c.Children.Add(n.Representation);
-            this.Draw(circleSize);
+
+
+            foreach (Node n in nodes)
+                c.Children.Add(n.DistanceText);
+            
+            this.Draw();
         }
 
 
@@ -137,6 +150,333 @@ namespace Effizienze_Graphentheorie.Graph
         }
 
 
+
+
+
+
+        private void resetColor()
+        {
+            foreach (Node n in nodes)
+            {
+                foreach (Arc a in n.Outgoing)
+                {
+                    a.Representation.Stroke = Brushes.Black;
+                }
+                n.Representation.Fill = Brushes.White;
+                n.Representation.Stroke = Brushes.Black;
+                n.DistanceText.Foreground = Brushes.Black;
+            }
+            source.Representation.Fill = Brushes.LightBlue;
+            drain.Representation.Fill = Brushes.Yellow;
+        }
+
+
+
+        private void BuildResidualGraph()
+        {
+            List<Arc> residual = new List<Arc>();
+            foreach (Node n in nodes)
+            {
+                foreach (Arc a in n.Outgoing)
+                {
+                    residual.Add(a.GetResidual());
+                }
+            }
+            foreach (Arc a in residual)
+            {
+                AddArc(a);
+            }
+        }
+
+        private void DestroyResiduals()
+        {
+            foreach (Node n in nodes)
+            {
+                n.Outgoing.RemoveAll(item => item.IsResidual);
+                n.Incoming.RemoveAll(item => item.IsResidual);
+
+            }
+        }
+
+        public AlgoOutput FordFulkersonStep()
+        {
+            BuildResidualGraph();
+            Arc[] path;
+            AlgoOutput output = new AlgoOutput();
+            path = DepthFirstSearchPath(source, drain);
+            if (path.Length == 0)
+            {
+                DestroyResiduals();
+                output.UsedArcs = new Arc[0];
+                output.MaxCap = 0;
+                return output;
+            }
+            int maxCap = int.MaxValue;
+
+            foreach (Arc a in path)
+            {
+                maxCap = Math.Min(a.MaxCapacity - a.Capacity, maxCap);
+            }
+
+            foreach (Arc a in path)
+            {
+                if (a.IsResidual)
+                    a.Origin.Capacity -= maxCap;
+                else
+                    a.Capacity += maxCap;
+            }
+
+            output.UsedArcs = path;
+            output.MaxCap = maxCap;
+
+            DestroyResiduals();
+
+            return output;
+        }
+
+        public AlgoOutput EdmondsKarpStep()
+        {
+            this.BuildResidualGraph();
+            Arc[] path;
+            AlgoOutput output = new AlgoOutput();
+
+            path = BreadthFirstPath(source, drain);
+            if(path.Length == 0)
+            {
+                DestroyResiduals();
+                output.UsedArcs = new Arc[0];
+                output.MaxCap = 0;
+                return output;
+            }
+
+            int maxCap = int.MaxValue;
+
+            foreach (Arc a in path)
+            {
+                maxCap = Math.Min(a.MaxCapacity - a.Capacity, maxCap);
+            }
+
+            foreach (Arc a in path)
+            {
+                if (a.IsResidual)
+                    a.Origin.Capacity -= maxCap;
+                else
+                    a.Capacity += maxCap;
+            }
+
+            output.UsedArcs = path;
+            output.MaxCap = maxCap;
+
+            DestroyResiduals();
+            return output;
+        }
+
+        private Arc[] BreadthFirstPath(Node start, Node end)
+        {
+            Fifo<Node> fifo = new Fifo<Node>(nodes.Count);
+            foreach (Node n in nodes)
+                n.reset();
+
+            start.IsSeen = true;
+            fifo.AddItem(start);
+
+            bool foundPath = false;
+
+            while (!fifo.IsEmpty() && !foundPath)
+            {
+                Node n = fifo.GetItem();
+                foreach (Arc a in n.Outgoing)
+                {
+                    if (a.End.IsSeen || a.Capacity == a.MaxCapacity)
+                        continue;
+
+                    a.End.IsSeen = true;
+                    a.End.Preceding = a;
+                    fifo.AddItem(a.End);
+                    if (a.End == end)
+                    {
+                        foundPath = true;
+                        break;
+                    }
+                }
+            }
+
+            List<Arc> path = new List<Arc>();
+
+            Node prec = end;
+            while (prec.Preceding != null)
+            {
+                path.Add(prec.Preceding);
+                prec = prec.Preceding.Start;
+            }
+
+            path.Reverse();
+            return path.ToArray<Arc>();
+        }
+
+        public void InitializePreflowDistance()
+        {
+            Fifo<Node> fifo = new Fifo<Node>(nodes.Count);
+            foreach (Node n in nodes)
+                n.reset();
+
+            drain.IsSeen = true;
+            fifo.AddItem(drain);
+            drain.Distance = 0;
+
+            while (!fifo.IsEmpty())
+            {
+                Node n = fifo.GetItem();
+                foreach (Arc a in n.Incoming)
+                {
+                    if (a.Start.IsSeen || a.Capacity == a.MaxCapacity)
+                        continue;
+                    a.Start.Distance = n.Distance + 1;
+                    a.Start.IsSeen = true;
+                    fifo.AddItem(a.Start);
+                }
+            }
+
+            source.Distance = nodes.Count;
+        }
+
+        public DirectedGraph ConstructDinicSubgraph(Node start, Node end)
+        {
+            Fifo<Node> fifo = new Fifo<Node>(nodes.Count);
+            foreach (Node n in nodes)
+                n.reset();
+
+            start.IsSeen = true;
+            fifo.AddItem(start);
+
+            bool foundPath = false;
+
+            while (!fifo.IsEmpty())
+            {
+                Node n = fifo.GetItem();
+                foreach (Arc a in n.Outgoing)
+                {
+                    if (a.Capacity == a.MaxCapacity)
+                        continue;
+                    if (a.End.IsSeen)
+                    {
+                        if (a.End.Depth == n.Depth + 1)
+                            a.End.AddPreceding(a);
+                        continue;
+                    }
+                    //We don't stop after finding a Path to let the rest of the elements register as preceding
+                    if (!foundPath)
+                    {
+                        a.End.IsSeen = true;
+                        a.End.Depth = n.Depth + 1;
+                        a.End.AddPreceding(a);
+                        fifo.AddItem(a.End);
+                        if (a.End == end)
+                        {
+                            foundPath = true;
+                        }
+                    }
+
+                }
+            }
+
+            if (!foundPath)
+                return null;
+
+            Node[] subgraphNodes = new Node[nodes.Count];
+            subgraphNodes[end.Label] = new Node(end.XPos, end.YPos, end.Label);
+            List<Arc> subplotArcs = new List<Arc>();
+            FindArcsAndNodesInPrecedings(end, subplotArcs, subgraphNodes);
+
+            DirectedGraph subgraph = new DirectedGraph();
+            for (int i = 0; i < subgraphNodes.Length; i++)
+            {
+                if (subgraphNodes[i] != null)
+                    subgraph.AddNode(subgraphNodes[i]);
+            }
+
+            foreach (Arc a in subplotArcs)
+            {
+                Node startCopy = subgraphNodes[a.Start.Label];
+                Node endCopy = subgraphNodes[a.End.Label];
+                Arc arcCopy = new Arc(startCopy, endCopy, a.MaxCapacity, false, a);
+                arcCopy.Capacity = a.Capacity;
+                subgraph.AddArc(arcCopy);
+            }
+
+            subgraph.source = subgraphNodes[start.Label];
+            subgraph.drain = subgraphNodes[end.Label];
+
+            return subgraph;
+        }
+
+        public Arc[] DinicDepthSearch(Node start, Node end)
+        {
+            Stack<Node> stack = new Stack<Node>(nodes.Count);
+            Stack<Arc> ret = new Stack<Arc>(nodes.Count);
+
+            foreach (Node n in nodes)
+                n.reset();
+
+            start.IsSeen = true;
+            stack.Push(start);
+
+            while (!(stack.IsEmpty() || stack.Peek() == end))
+            {
+                Node currentNode = stack.Peek();
+                Arc currentArc = currentNode.GetNextArc();
+                if (currentArc == null)
+                {
+                    currentNode.RemoveAllIncoming();
+                    currentNode.RemoveAllOutgoing();
+                    stack.Pop().IsFinished = true;
+                    if (!ret.IsEmpty())
+                    {
+                        ret.Pop();
+                    }
+                }
+                else if (!currentArc.End.IsSeen && currentArc.Capacity != currentArc.MaxCapacity)
+                {
+                    currentArc.End.IsSeen = true;
+                    stack.Push(currentArc.End);
+                    ret.Push(currentArc);
+                }
+            }
+
+            return ret.GetAsArray();
+        }
+
+        public AlgoOutput BlockingFlowDinic()
+        {
+            List<Arc> usedArcs = new List<Arc>();
+            Arc[] path = DinicDepthSearch(source, drain);
+            int flowIncrease = 0;
+            while (path.Length != 0)
+            {
+                int delta = int.MaxValue;
+                foreach (Arc a in path)
+                {
+                    delta = Math.Min(delta, a.MaxCapacity - a.Capacity);
+                }
+                foreach (Arc a in path)
+                {
+                    a.Capacity = a.Capacity + delta;
+                    if (a.MaxCapacity == a.Capacity)
+                    {
+                        a.Start.RemoveArc(a);
+                        a.End.RemoveArc(a);
+                    }
+                }
+                flowIncrease += delta;
+                usedArcs.AddRange(path);
+                path = DinicDepthSearch(source, drain);
+            }
+            AlgoOutput ret = new AlgoOutput();
+            ret.UsedArcs = usedArcs.ToArray();
+            ret.MaxCap = flowIncrease;
+            return ret;
+        }
+
         public Arc[] DepthFirstSearchPath(Node start, Node end)
         {
             //First lets start preprocessing/induction basis
@@ -153,9 +493,11 @@ namespace Effizienze_Graphentheorie.Graph
             while (!(stack.Peek() == end || stack.IsEmpty()))
             {
                 Node currentNode = stack.Peek();
-                Arc currentArc = currentNode.getNextArc();
+                Arc currentArc = currentNode.GetNextArc();
                 if (currentArc == null)
                 {
+                    if (ret.IsEmpty())
+                        return new Arc[0];
                     ret.Pop();
                     stack.Pop().IsFinished = true;
                     continue;
@@ -171,193 +513,372 @@ namespace Effizienze_Graphentheorie.Graph
 
             }
 
-            if (stack.Peek().IsFinished)
-                throw new Exception("Could not find a Path");
-
             return ret.GetAsArray();
         }
 
-        private Arc[] BreadthFirstPath(Node start, Node end)
+
+
+        public AlgoOutput DinicStep()
         {
-            Fifo<Node> fifo = new Fifo<Node>(nodes.Count);
+            AlgoOutput ret = new AlgoOutput();
+           
+            DirectedGraph subGraph = this.ConstructDinicSubgraph(source, drain);
+            if (subGraph != null)
+            {
+                List<Arc> subArcs = new List<Arc>();
+
+                foreach (Node n in subGraph.Nodes)
+                {
+                    subArcs.AddRange(n.Outgoing);
+                }
+                ret = subGraph.BlockingFlowDinic();
+                foreach (Arc a in subArcs)
+                {
+                    a.Origin.Capacity = a.Capacity;
+                }
+                Arc[] usedArcs = new Arc[ret.UsedArcs.Length];
+                for (int i = 0; i < usedArcs.Length; i++)
+                {
+                    usedArcs[i] = ret.UsedArcs[i].Origin;
+                }
+                ret.UsedArcs = usedArcs;
+                return ret;
+            }
+            ret.UsedArcs = new Arc[0];
+            return ret;
+        }
+
+        private void FindArcsAndNodesInPrecedings(Node n, List<Arc> subplotArcs, Node[] subplotNodes)
+        {
+            foreach (Arc a in n.Precedings)
+            {
+
+                subplotArcs.Add(a);
+                if (subplotNodes[a.Start.Label] == null)
+                {
+                    subplotNodes[a.Start.Label] = new Node(a.Start.XPos, a.Start.YPos, a.Start.Label);
+                    FindArcsAndNodesInPrecedings(a.Start, subplotArcs, subplotNodes);
+                }
+            }
+        }
+
+        public void VisualizeStep(Func<AlgoOutput> GraphAlgorithm, TextBlock text)
+        {
+            this.resetColor();
+            AlgoOutput output = GraphAlgorithm();
+
+            text.Text = "Increased flow by " + output.MaxCap;
+
+            foreach (Arc a in output.UsedArcs)
+            {
+                if (a.IsResidual)
+                {
+                    a.Origin.Representation.Stroke = Brushes.Green;
+                    if (a.Origin.ReverseArc != null)
+                        a.Origin.ReverseArc.Representation.Stroke = Brushes.Green;
+
+                }
+                else
+                {
+                    a.Representation.Stroke = Brushes.Red;
+                    if (a.ReverseArc != null)
+                        a.ReverseArc.Representation.Stroke = Brushes.Red;
+                }
+            }
+        }
+
+        public void ResetGraph()
+        {
+            this.PreflowInitialized = false;
+            this.resetColor();
+            foreach (Node n in nodes)
+            {
+                foreach (Arc a in n.Outgoing)
+                    a.Capacity = 0;
+                n.Distance = 0;
+                n.DistanceText.Text = "";
+            }
+                
+        }
+
+        public List<Node> Nodes
+        {
+            get { return this.nodes; }
+        }
+
+
+        public class AlgoOutput
+        {
+            public Arc[] UsedArcs;
+            public int MaxCap;
+        }
+
+
+        List<Node> PreflowNode = new List<Node>();
+        bool PreflowInitialized = false;
+        public void InitializePreflow()
+        {
+            InitializePreflowDistance();
+
+            foreach (Arc a in source.Outgoing)
+            {
+                a.Capacity = a.MaxCapacity;
+                if(!a.End.IsDrain && a.MaxCapacity != 0)
+                    PreflowNode.Add(a.End);
+            }
+        }
+
+        public PreflowOutput PreflowStep()
+        {
+            PreflowOutput ret = new PreflowOutput();
+            if (!PreflowInitialized)
+            {
+                PreflowInitialized = true;
+                InitializePreflow();
+                ret.distanceIncreased = source;
+                return ret;
+            }
+
+            if (PreflowNode.Count == 0) return ret;
+            Node currentNode = null;
+            foreach (Node n in PreflowNode)
+            {
+                if (n.IsActive())
+                {
+                    currentNode = n;
+                    break;
+                }
+            }
+
+            if (currentNode == null)
+            {
+                throw new Exception("Something went wrong");
+            }
+                
+
+
+            Arc currentArc = null;
+            //suche in den normal ausgehenden 
+            foreach (Arc a in currentNode.Outgoing)
+            {
+                if (a.End.Distance + 1 == a.Start.Distance && a.Capacity != a.MaxCapacity)
+                {
+                    currentArc = a;
+                    break;
+                }
+            }
+
+            //wir haben in den normalen keinen guten gefunden. Durchsuchen wir den Residualgraph
+            if (currentArc == null)
+                foreach (Arc a in currentNode.Incoming)
+                {
+                    if (a.Start.Distance + 1 == a.End.Distance && a.Capacity != 0)
+                    {
+                        currentArc = a.GetResidual();
+                        break;
+                    }
+                }
+
+
+
+            if (currentArc != null)
+            {
+                if (currentArc.End != source && currentArc.End != drain && currentArc.End.Excess == 0 && !PreflowNode.Contains(currentArc.End))
+                    PreflowNode.Add(currentArc.End);
+                int difference = Math.Min(currentNode.Excess, currentArc.MaxCapacity - currentArc.Capacity);
+                if (difference == 0)
+                    throw new Exception("Flow didn't increase");
+                if(!currentArc.IsResidual)
+                    currentArc.Capacity = currentArc.Capacity + difference;
+                else
+                    currentArc.Origin.Capacity = currentArc.Origin.Capacity - difference;
+                if (currentNode.Excess == 0)
+                    PreflowNode.Remove(currentNode);
+                ret.saturated = currentArc;
+                return ret;
+            }
+            else
+            {
+                int dmin = int.MaxValue;
+                foreach (Arc a in currentNode.Outgoing)
+                {
+                    if (a.Capacity < a.MaxCapacity)
+                    {
+                        dmin = Math.Min(dmin, a.End.Distance);
+                    }
+                }
+                foreach (Arc a in currentNode.Incoming)
+                {
+                    if (a.Capacity != 0)
+                    {
+                        dmin = Math.Min(dmin, a.Start.Distance);
+                    }
+                }
+                currentNode.Distance = dmin + 1;
+                ret.distanceIncreased = currentNode;
+                return ret;
+            }
+        }
+
+        public class PreflowOutput
+        {
+            public Node distanceIncreased = null;
+            public Arc saturated = null;
+        }
+
+        public void VisualizePreFlow(Node start, Node end)
+        {
+            resetColor();
+            PreflowOutput output = PreflowStep();
+            Arc[] cut = GetCut();
+            foreach (Arc a in cut)
+            {
+                a.Representation.Stroke = Brushes.Blue;
+                if (a.ReverseArc != null)
+                    a.ReverseArc.Representation.Stroke = Brushes.Blue;
+            }
+            if (output.saturated != null)
+            {
+                output.saturated.Representation.Stroke = Brushes.Red;
+                if (output.saturated.ReverseArc != null)
+                    output.saturated.ReverseArc.Representation.Stroke = Brushes.Red;
+            }
+                
+            if (output.distanceIncreased != null)
+                output.distanceIncreased.DistanceText.Foreground = Brushes.Red;
+        }
+
+        public Arc[] GetCut()
+        {
+            HashSet<Node> reachableNodes = DepthSearchFindNodes(source, drain);
+            List<Arc> ret = new List<Arc>();
+            foreach (Node n in reachableNodes)
+            {
+                foreach (Arc a in n.Outgoing)
+                {
+                    if(!reachableNodes.Contains(a.End))
+                        ret.Add(a);
+                }
+            }
+            return ret.ToArray();
+        }
+
+        public HashSet<Node> DepthSearchFindNodes(Node start, Node end)
+        {
+            HashSet<Node> ret = new HashSet<Node>();
+            Stack<Node> stack = new Stack<Node>(nodes.Count);
+
             foreach (Node n in nodes)
                 n.reset();
 
             start.IsSeen = true;
-            fifo.AddItem(start);
+            stack.Push(start);
+            ret.Add(start);
 
-            bool foundPath = false;
-
-            while(!fifo.IsEmpty() && !foundPath)
+            while (!stack.IsEmpty())
             {
-                Node n = fifo.GetItem();
-                foreach (Arc a in n.Outgoing)
+                Node currentNode = stack.Peek();
+                Arc currentArc = currentNode.GetNextArc();
+                if (currentArc == null)
                 {
-                    if (a.End.IsSeen || a.Capacity == a.MaxCapacity)
-                        continue;
-                    
-                    a.End.IsSeen = true;
-                    a.End.Preceding = a;
-                    fifo.AddItem(a.End);
-                    if (a.End == end)
-                    {
-                        foundPath = true;
-                        break;
-                    }
+                    stack.Pop().IsFinished = true;
+                    continue;
                 }
+
+                if (currentArc.End.IsSeen == false && currentArc.Capacity != currentArc.MaxCapacity)
+                {
+                    currentArc.End.IsSeen = true;
+                    stack.Push(currentArc.End);
+                    ret.Add(currentArc.End);
+                }
+
             }
 
-            if (fifo.IsEmpty())
-                throw new Exception("Did not find Path");
-
-            List<Arc> path = new List<Arc>();
-
-            Node prec = end;
-            while (prec.Preceding != null)
-            {
-                path.Add(prec.Preceding);
-                prec = end.Preceding.Start;
-            }
-
-            path.Reverse();
-            return path.ToArray<Arc>();
+            return ret;
         }
 
-        private void resetColor()
+        public JsonGraph GetJsonGraph()
         {
+            JsonGraph json = new JsonGraph();
+            JsonNode[] jsonNodes = new JsonNode[nodes.Count];
+            JsonArc[] jsonArcs;
+
+            int numberOfArcs = 0;
             foreach (Node n in nodes)
             {
                 foreach (Arc a in n.Outgoing)
-                {
-                    a.Representation.Stroke = Brushes.Black;
-                }
-                n.Representation.Fill = Brushes.White;
-                n.Representation.Stroke = Brushes.Black;
+                    numberOfArcs++;
             }
-            source.Representation.Fill = Brushes.Blue;
-            drain.Representation.Fill = Brushes.Yellow;
-        }
 
-        private void BuildResidualGraph()
-        {
-            List<Arc> residual = new List<Arc>();
+            jsonArcs = new JsonArc[numberOfArcs];
+
+            int nodeCount = 0;
+            int arcCount = 0;
             foreach (Node n in nodes)
             {
-                foreach(Arc a in n.Outgoing)
+                JsonNode singleNode = new JsonNode();
+                singleNode.label = n.Label;
+                singleNode.xPos = n.XPos;
+                singleNode.yPos = n.YPos;
+                jsonNodes[nodeCount++] = singleNode;
+                foreach (Arc a in n.Outgoing)
                 {
-                    residual.Add(a.GetResidual());
+                    JsonArc singleArc = new JsonArc();
+                    singleArc.startLabel = a.Start.Label;
+                    singleArc.endLabel = a.End.Label;
+                    singleArc.maxCapacity = a.MaxCapacity;
+                    jsonArcs[arcCount++] = singleArc;
                 }
             }
-            foreach (Arc a in residual)
-            {
-                AddArc(a);
-            }
+
+            json.nodes = jsonNodes;
+            json.arcs = jsonArcs;
+            //json.source = this.source.Label;
+            //json.drain = this.drain.Label;
+
+            return json;
         }
 
-        private void DestroyResiduals()
+        public static DirectedGraph ConstructGraphFromJson(string Json)
         {
-            foreach (Node n in nodes)
+            JsonGraph jsonGraph = new JavaScriptSerializer().Deserialize<JsonGraph>(Json);
+            DirectedGraph copiedGraph = new DirectedGraph();
+
+            Node[] copiedNodes = new Node[jsonGraph.nodes.Length];
+            Arc[] copiedArcs = new Arc[jsonGraph.arcs.Length];
+
+            for (int i = 0; i < copiedNodes.Length; i++)
             {
-                n.Outgoing.RemoveAll(item => item.IsResidual);
+                copiedNodes[i] = new Node(jsonGraph.nodes[i].xPos, jsonGraph.nodes[i].yPos, jsonGraph.nodes[i].label);
             }
+
+            for (int i = 0; i < copiedArcs.Length; i++)
+            {
+                copiedArcs[i] = new Arc(copiedNodes[jsonGraph.arcs[i].startLabel], copiedNodes[jsonGraph.arcs[i].endLabel], jsonGraph.arcs[i].maxCapacity);
+            }
+
+            foreach (Node n in copiedNodes)
+            {
+                copiedGraph.AddNode(n);
+            }
+            foreach (Arc a in copiedArcs)
+            {
+                copiedGraph.AddArc(a);
+            }
+
+            copiedGraph.SetSource(copiedNodes[jsonGraph.source]);
+            copiedGraph.SetDrain(copiedNodes[jsonGraph.drain]);
+
+            return copiedGraph;
         }
 
-        public void FordFulkersonStep(TextBlock text)
+        public Node Source
         {
-            this.resetColor();
-            BuildResidualGraph();
-            Arc[] path;
-            try
-            {
-                path = DepthFirstSearchPath(source, drain);
-            }
-            catch (Exception)
-            {
-                DestroyResiduals();
-                return;
-            }
-            int maxCap = int.MaxValue;
-            
-            foreach (Arc a in path)
-            {
-                maxCap = Math.Min(a.MaxCapacity - a.Capacity, maxCap);
-            }
-
-            text.Text = "Increased flow by " + maxCap;
-
-            foreach (Arc a in path)
-            {
-                if (a.IsResidual)
-                    a.Origin.Capacity -= maxCap;
-                else
-                    a.Capacity += maxCap;
-            }
-
-            foreach (Arc a in path)
-            {
-                if (a.IsResidual)
-                {
-                    a.Origin.Representation.Stroke = Brushes.Green;
-                    if (a.Origin.ReverseArc != null)
-                        a.Origin.ReverseArc.Representation.Stroke = Brushes.Green;
-                    
-                }
-                else
-                {
-                    a.Representation.Stroke = Brushes.Red;
-                    if(a.ReverseArc != null)
-                        a.ReverseArc.Representation.Stroke = Brushes.Red;
-                }
-                
-            }
-
-            DestroyResiduals();
+            get { return source; }
         }
-
-        public void EdmondsKarpStep(TextBlock text)
+        public Node Drain
         {
-            this.resetColor();
-            this.BuildResidualGraph();
-            Arc[] path;
-            
-            path = BreadthFirstPath(source, drain);
-            
-            int maxCap = int.MaxValue;
-            
-            foreach (Arc a in path)
-            {
-                maxCap = Math.Min(a.MaxCapacity - a.Capacity, maxCap);
-            }
-
-            text.Text = "Increased flow by " + maxCap;
-
-            foreach (Arc a in path)
-            {
-                if (a.IsResidual)
-                    a.Origin.Capacity -= maxCap;
-                else
-                    a.Capacity += maxCap;
-            }
-
-            foreach (Arc a in path)
-            {
-                if (a.IsResidual)
-                {
-                    a.Origin.Representation.Stroke = Brushes.Green;
-                    if (a.Origin.ReverseArc != null)
-                        a.Origin.ReverseArc.Representation.Stroke = Brushes.Green;
-                    
-                }
-                else
-                {
-                    a.Representation.Stroke = Brushes.Red;
-                    if(a.ReverseArc != null)
-                        a.ReverseArc.Representation.Stroke = Brushes.Red;
-                }
-                
-            }
-
-            DestroyResiduals();
+            get { return drain; }
         }
     }
 }

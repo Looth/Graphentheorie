@@ -19,7 +19,7 @@ namespace Effizienze_Graphentheorie.Graph
             this.canvasWidth = canvasWidth;
         }
 
-        public DirectedGraph GenerateGraph(int nodeCount, int maxCapacity, int circleSize)
+        public DirectedGraph GenerateGraph(int nodeCount, int maxCapacity)
         {
             DirectedGraph result = new DirectedGraph();
             Node[] createdNodes = new Node[nodeCount];
@@ -32,7 +32,7 @@ namespace Effizienze_Graphentheorie.Graph
             {
                 int xpos = (int) (circleSize / 2.0 + random.NextDouble() * (canvasWidth - circleSize));
                 int ypos = (int) (circleSize / 2.0 + random.NextDouble() * (canvasHeight - circleSize));
-                Node node = new Node(xpos, ypos, nodesCreated.ToString(), circleSize);
+                Node node = new Node(xpos, ypos, nodesCreated);
                 bool passed = true;
                 List<Triple> distanceToNewNode = new List<Triple>();
                 for (int i = 0; i < nodesCreated; i++)

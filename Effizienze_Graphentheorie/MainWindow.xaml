@@ -2,21 +2,48 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="800" Width="1200">
-    <Grid Background="Gray">
+    <Grid Background="LightGray">
         <Grid.RowDefinitions>
-            <RowDefinition Height ="20"></RowDefinition>
-            <RowDefinition Height="1*"></RowDefinition>
-            <RowDefinition Height="1*"></RowDefinition>
-            <RowDefinition Height="1*"></RowDefinition>
+            <RowDefinition Height ="20"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="1*"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Column="1" Grid.Row="0" Background="White" Name="text">Please generate a graph</TextBlock>
-        <Canvas Name="canvas" Grid.Column="1" Grid.Row="1" Background="White" Grid.RowSpan="3"></Canvas>
-        <Button Height="50" Click="GenerateGraph" Grid.Row="1">Generate Graph</Button>
-        <Button Height="50" Click="FordFulkersonStep" Grid.Row="2">Ford Fulkerson Step</Button>
-        <Button Height="50" Click="EdmondsKarpStep" Grid.Row="3">Edmonds Karp Step</Button>
+        <StackPanel Grid.Column="0" Grid.Row="1">
+            <TextBlock > # of Elements</TextBlock>
+            <Slider
+                Name="NodeCount"
+                IsSnapToTickEnabled="True"
+                Value="10" 
+                Minimum="2" 
+                Maximum="30" 
+                TickPlacement="TopLeft"
+                RenderTransformOrigin="0.523,-2.852" 
+                ValueChanged="Slider_ValueChanged"/>
+            <TextBlock Text="{Binding ElementName=NodeCount,Path=Value}"
+                       Background="White"
+                       Width="20"></TextBlock>
+        </StackPanel>
+        <Canvas Name="canvas" Grid.Column="1" Grid.Row="1" Background="White" Grid.RowSpan="10"></Canvas>
+        <Button Height="50" Click="GenerateGraph" Grid.Row="2">Generate Graph</Button>
+        <Button Height="50" Click="FordFulkersonStep" Grid.Row="3">Ford Fulkerson Step</Button>
+        <Button Height="50" Click="EdmondsKarpStep" Grid.Row="4">Edmonds Karp Step</Button>
+        <Button Height="50" Click="DinicStep" Grid.Row="5">Dinic</Button>
+        <Button Height="50" Click="Subgraph" Grid.Row="6">Subgraph</Button>
+        <Button Height="50" Click="PreflowStep" Grid.Row="7">Preflow-Push Step</Button>
+        <Button Height="50" Click="TryTesting" Grid.Row="8">Testing</Button>
+        <Button Height="50" Click="ResetGraph" Grid.Row="10">ResetGraph</Button>
     </Grid>
 </Window>

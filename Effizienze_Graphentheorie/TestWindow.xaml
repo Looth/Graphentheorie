@@ -1,0 +1,62 @@
+﻿<Window x:Class="Effizienze_Graphentheorie.TestWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TestWindow" Height="800" >
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Grid Width="330" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110"/>
+                <ColumnDefinition Width="110" />
+                <ColumnDefinition Width="110" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0">
+                <Bold>Instances</Bold>
+            </TextBlock>
+            <TextBlock Grid.Column="1">
+                <Bold>Node Count</Bold>
+            </TextBlock>
+            <TextBlock Grid.Column="2">
+                <Bold>Maximum Capacity</Bold>
+            </TextBlock>
+            <StackPanel Grid.Column="0" Grid.Row="1" Name="InstancePanel">
+                <TextBox></TextBox>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Grid.Row="1" Name="NodePanel">
+                <TextBox></TextBox>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Grid.Row="1" Name="CapacityPanel">
+                <TextBox></TextBox>
+            </StackPanel>
+            <Button Grid.Column="1" Grid.Row="2" Click="AddNewRow_Click">
+                Add new Row
+            </Button>
+            <Button Grid.Column="2" Grid.Row="2" Click="Evaluate_Click">
+                Evaluate
+            </Button>
+        </Grid>
+
+        <Grid Grid.Column="1">
+            <Grid>
+                <StackPanel>
+                    <DockPanel>
+                        <TextBlock Width="110"><Bold>Is Feasible</Bold></TextBlock>
+                        <TextBlock><Bold>Is Flow Identical</Bold></TextBlock>
+                    </DockPanel>
+                    <StackPanel Name="Result"></StackPanel>
+                </StackPanel>
+                
+            </Grid>
+            
+        </Grid>
+    </Grid>
+
+</Window>

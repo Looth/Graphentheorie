@@ -59,6 +59,11 @@ namespace Effizienze_Graphentheorie.Graph
 
         public int MaxCapacity
         {
+            set
+            {
+                this.maxCapacity = value;
+                capacityText.Text = Capacity + "/" + MaxCapacity;
+            }
             get { return maxCapacity; }
         }
         public int Capacity

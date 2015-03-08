@@ -1,4 +1,7 @@
-﻿using Effizienze_Graphentheorie.Graph;
+﻿using Effizienze_Graphentheorie.BreadthFirstUtility;
+using Effizienze_Graphentheorie.DataExport;
+using Effizienze_Graphentheorie.Graph;
+using Effizienze_Graphentheorie.Testumgebung;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -26,7 +30,8 @@ namespace Effizienze_Graphentheorie
         Node source = null;
         Node drain = null;
         DirectedGraph graph = null;
-        int circleSize = 50;
+        public const int circleSize = 50;
+        int nodeCount = 10;
         public MainWindow()
         {
             InitializeComponent();
@@ -35,15 +40,20 @@ namespace Effizienze_Graphentheorie
 
         private void GenerateGraph(object sender, RoutedEventArgs evt)
         {
-            
-
             RndGraphGenerator generator = new RndGraphGenerator(circleSize, (int) canvas.ActualHeight, (int) canvas.ActualWidth);
-            graph = generator.GenerateGraph(10, 50, circleSize);
-            graph.putOnCanvas(canvas, circleSize);
+            graph = generator.GenerateGraph(nodeCount, 50);
+            graph.PutOnCanvas(canvas, circleSize);
             source = null;
             drain = null;
 
             ChooseSource();
+
+            /*
+            var json = new JavaScriptSerializer().Serialize(graph.GetJsonGraph());
+            Console.WriteLine(json);
+
+            DirectedGraph copy = DirectedGraph.ConstructGraphFromJson(json);
+            */
         }
 
         private void ChooseSource()
@@ -63,7 +73,7 @@ namespace Effizienze_Graphentheorie
             text.Text = "Please select a drain";
             Ellipse ellipse = sender as Ellipse;
             source = ellipse.DataContext as Node;
-            graph.Source = source;
+            graph.SetSource(source, canvas);
 
             foreach (UIElement e in canvas.Children)
             {
@@ -82,7 +92,7 @@ namespace Effizienze_Graphentheorie
             text.Text = "Please select a algorithm";
 
             drain = ellipse.DataContext as Node;
-            graph.Drain = drain;
+            graph.SetDrain(drain,canvas);
 
             foreach (UIElement e in canvas.Children)
             {
@@ -113,29 +123,29 @@ namespace Effizienze_Graphentheorie
             Node n = el.DataContext as Node;
             n.XPos = (int)e.GetPosition(canvas).X;
             n.YPos = (int)e.GetPosition(canvas).Y;
-            graph.Draw(circleSize);
+            graph.Draw();
         }
 
         private void FordFulkersonStep(object sender, RoutedEventArgs e)
         {
             if (source != null && drain != null)
-                graph.FordFulkersonStep(text);
+                graph.VisualizeStep(graph.FordFulkersonStep, text);
         }
 
         private void EdmondsKarpStep(object sender, RoutedEventArgs e)
         {
             if (source != null && drain != null)
-                graph.EdmondsKarpStep(text);
+                graph.VisualizeStep(graph.EdmondsKarpStep, text);
         }
 
 
         DirectedGraph BuildSpecialGraph()
         {
             DirectedGraph g = new DirectedGraph();
-            Node n1 = new Node(10, 150, "1", 20);
-            Node n2 = new Node(200, 30, "2", 20);
-            Node n3 = new Node(200, 120, "3", 20);
-            Node n4 = new Node(400, 150, "4", 20);
+            Node n1 = new Node(10, 150, 0);
+            Node n2 = new Node(200, 30, 1);
+            Node n3 = new Node(200, 120, 2);
+            Node n4 = new Node(400, 150, 3);
             Arc a1 = new Arc(n1, n2, 1);
             Arc a2 = new Arc(n1, n3, 1);
             Arc a3 = new Arc(n2, n3, 1);
@@ -153,6 +163,74 @@ namespace Effizienze_Graphentheorie
             g.AddArc(a2);
             g.AddArc(a4);
             return g;
+        }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            nodeCount = (int)(sender as Slider).Value;
+        }
+
+        bool displaySub = false;
+        private void Subgraph(object sender, RoutedEventArgs e)
+        {
+            DirectedGraph subgraph;
+            subgraph = graph.ConstructDinicSubgraph(source, drain);
+            if (subgraph == null)
+                return;
+            if (source != null && drain != null)
+            {
+                canvas.Children.Clear();
+            }
+            if (!displaySub)
+            {
+                subgraph.PutOnCanvas(canvas, circleSize);
+
+                displaySub = true;
+            }
+            else
+            {
+                graph.PutOnCanvas(canvas, circleSize);
+                displaySub = false;
+            }
+            
+        }
+
+        private void DinicStep(object sender, RoutedEventArgs e)
+        {
+            if (source != null && drain != null)
+                graph.VisualizeStep(graph.DinicStep, text);
+        }
+
+        private void ResetGraph(object sender, RoutedEventArgs e)
+        {
+            if(graph != null)
+                graph.ResetGraph();
+        }
+
+        private void PreflowStep(object sender, RoutedEventArgs e)
+        {
+            if (source != null && drain != null)
+                graph.VisualizePreFlow(source, drain);
+        }
+
+        private void TryTesting(object sender, RoutedEventArgs e)
+        
+        {
+            /*
+            Tripel t = new Tripel();
+            t.instances = 100;
+            t.maxCapacity = 20;
+            t.nodeCount = 30;
+            var listt = new List<Tripel>();
+            listt.Add(t);
+            TestAlgorithms ta = new TestAlgorithms(listt);
+
+            Console.WriteLine(ta.CheckIfAllFeasible());
+            Console.WriteLine(ta.CheckIfFlowIsIdentical());
+            */
+
+            TestWindow w = new TestWindow();
+            w.Show();
         }
     }
 }

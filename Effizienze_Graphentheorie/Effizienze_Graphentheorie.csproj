@@ -36,6 +36,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -53,6 +54,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DataExport\JsonArc.cs" />
+    <Compile Include="DataExport\JsonGraph.cs" />
+    <Compile Include="DataExport\JsonNode.cs" />
+    <Compile Include="Testumgebung\AlgoEvaluation.cs" />
+    <Compile Include="Testumgebung\GraphEvaluation.cs" />
+    <Compile Include="Testumgebung\TestAlgorithms.cs" />
+    <Compile Include="Testumgebung\Tripel.cs" />
+    <Compile Include="TestWindow.xaml.cs">
+      <DependentUpon>TestWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -62,7 +73,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BreadthFirstUtility\Fifo.cs" />
-    <Compile Include="DepthFirstUtility\Stack.cs" />
+    <Compile Include="BreadthFirstUtility\Stack.cs" />
     <Compile Include="Graph\Arc.cs" />
     <Compile Include="Graph\DirectedGraph.cs" />
     <Compile Include="Graph\Node.cs" />
@@ -71,6 +82,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="TestWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -97,7 +112,9 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

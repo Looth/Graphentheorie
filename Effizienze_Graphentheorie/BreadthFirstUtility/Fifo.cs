@@ -13,7 +13,7 @@ namespace Effizienze_Graphentheorie.BreadthFirstUtility
         int end;
 
         public Fifo(int capacity){
-            items = new T[capacity];
+            items = new T[capacity + 1];
             start = 0;
             end = 0;
         }
@@ -43,6 +43,22 @@ namespace Effizienze_Graphentheorie.BreadthFirstUtility
         public bool IsEmpty()
         {
             return start == end;
+        }
+
+        public T[] ToArray()
+        {
+            T[] ret;
+            if(start > end)
+                ret =  new T[items.Length - (start - end)];
+            else
+                ret =  new T[end - start];
+
+            for (int i = start, count = 0; i != end; i = (i + 1) % items.Length)
+            {
+                ret[count] = items[i];
+                count++;
+            }
+            return ret;
         }
     }
 }
