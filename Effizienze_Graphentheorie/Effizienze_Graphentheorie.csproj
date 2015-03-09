@@ -57,6 +57,7 @@
     <Compile Include="DataExport\JsonArc.cs" />
     <Compile Include="DataExport\JsonGraph.cs" />
     <Compile Include="DataExport\JsonNode.cs" />
+    <Compile Include="DataExport\JsonPerformance.cs" />
     <Compile Include="Testumgebung\AlgoEvaluation.cs" />
     <Compile Include="Testumgebung\GraphEvaluation.cs" />
     <Compile Include="Testumgebung\TestAlgorithms.cs" />

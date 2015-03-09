@@ -216,21 +216,43 @@ namespace Effizienze_Graphentheorie
         private void TryTesting(object sender, RoutedEventArgs e)
         
         {
-            /*
-            Tripel t = new Tripel();
-            t.instances = 100;
-            t.maxCapacity = 20;
-            t.nodeCount = 30;
-            var listt = new List<Tripel>();
-            listt.Add(t);
-            TestAlgorithms ta = new TestAlgorithms(listt);
-
-            Console.WriteLine(ta.CheckIfAllFeasible());
-            Console.WriteLine(ta.CheckIfFlowIsIdentical());
-            */
 
             TestWindow w = new TestWindow();
             w.Show();
+        }
+
+        private void ReadJSON(object sender, RoutedEventArgs e)
+        {
+            JsonField.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        private void Send(object sender, RoutedEventArgs e)
+        {
+            JsonField.Visibility = System.Windows.Visibility.Collapsed;
+            string json = JsonTextBox.Text;
+            JsonPerformance perf = null;
+            try
+            {
+                perf = new JavaScriptSerializer().Deserialize<JsonPerformance>(json);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+            if (perf == null) return;
+            graph = DirectedGraph.ConstructGraphFromJson(perf.graph);
+            graph.PutOnCanvas(canvas, circleSize);
+
+            foreach (UIElement elem in canvas.Children)
+            {
+                if (elem is Ellipse)
+                {
+                    elem.MouseDown += StartDrag;
+                }
+            }
+
+            this.source = graph.Source;
+            this.drain = graph.Drain;
         }
     }
 }

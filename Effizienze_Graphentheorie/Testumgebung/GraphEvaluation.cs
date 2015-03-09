@@ -1,9 +1,12 @@
-﻿using Effizienze_Graphentheorie.Graph;
+﻿using Effizienze_Graphentheorie.DataExport;
+using Effizienze_Graphentheorie.Graph;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 
 namespace Effizienze_Graphentheorie.Testumgebung
 {
@@ -18,10 +21,48 @@ namespace Effizienze_Graphentheorie.Testumgebung
             this.graph = graph;
             performances = new List<AlgoEvaluation>();
 
-            performances.Add(EvaluateFordFulkerson());
-            performances.Add(EvaluateEdmondsKarp());
-            performances.Add(EvaluateDinic());
-            performances.Add(EvaluatePreflow());
+            AlgoEvaluation ford, edmond, dinic, preflow;
+
+            ford = EvaluateFordFulkerson();
+            edmond = EvaluateEdmondsKarp();
+            dinic = EvaluateDinic();
+            preflow = EvaluatePreflow();
+
+            performances.Add(ford);
+            performances.Add(edmond);
+            performances.Add(dinic);
+            performances.Add(preflow);
+
+            int flow = performances[0].flow;
+            bool feasible = performances[0].isFeasible;
+            for (int i = 1; i < 4; i++)
+            {
+                feasible &= flow == performances[i].flow && performances[i].isFeasible;
+                if (!feasible)
+                {
+                    using (StreamWriter sw = File.AppendText("ErrorLog.txt"))
+                    {
+
+
+                        JsonPerformance perf = new JsonPerformance()
+                        {
+                            DinicFlow = dinic.flow,
+                            EdmondFlow = edmond.flow,
+                            FordFlow = ford.flow,
+                            PreflowFlow = preflow.flow,
+                            isPreflowFeasible = preflow.isFeasible,
+                            isDinicFeasible = dinic.isFeasible,
+                            isEdmondFeasible = edmond.isFeasible,
+                            isFordFeasible = ford.isFeasible,
+                            graph = graph.GetJsonGraph()
+                        };
+                        var json = new JavaScriptSerializer().Serialize(perf);
+
+                        sw.WriteLine(json);
+                    }
+                    break;
+                }
+            }
         }
 
         private AlgoEvaluation EvaluateFordFulkerson()

@@ -15,7 +15,7 @@ namespace Effizienze_Graphentheorie.Testumgebung
 
         public TestAlgorithms(List<Tripel> config)
         {
-            RndGraphGenerator generator = new RndGraphGenerator(0, 500, 500);
+            RndGraphGenerator generator = new RndGraphGenerator(0, 1100, 700);
             Random randomGenerator = new Random(1);
 
             foreach (Tripel t in config)

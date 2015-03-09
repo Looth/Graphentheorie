@@ -203,6 +203,15 @@ namespace Effizienze_Graphentheorie.Graph
             BuildResidualGraph();
             Arc[] path;
             AlgoOutput output = new AlgoOutput();
+
+            //This CodeBlock may be used for Testing purposes
+            /* 
+            DestroyResiduals();
+            output.UsedArcs = new Arc[0];
+            output.MaxCap = 0;
+            return output;
+             */
+            
             path = DepthFirstSearchPath(source, drain);
             if (path.Length == 0)
             {
@@ -833,15 +842,14 @@ namespace Effizienze_Graphentheorie.Graph
 
             json.nodes = jsonNodes;
             json.arcs = jsonArcs;
-            //json.source = this.source.Label;
-            //json.drain = this.drain.Label;
+            json.source = this.source.Label;
+            json.drain = this.drain.Label;
 
             return json;
         }
 
-        public static DirectedGraph ConstructGraphFromJson(string Json)
+        public static DirectedGraph ConstructGraphFromJson(JsonGraph jsonGraph)
         {
-            JsonGraph jsonGraph = new JavaScriptSerializer().Deserialize<JsonGraph>(Json);
             DirectedGraph copiedGraph = new DirectedGraph();
 
             Node[] copiedNodes = new Node[jsonGraph.nodes.Length];
@@ -855,6 +863,20 @@ namespace Effizienze_Graphentheorie.Graph
             for (int i = 0; i < copiedArcs.Length; i++)
             {
                 copiedArcs[i] = new Arc(copiedNodes[jsonGraph.arcs[i].startLabel], copiedNodes[jsonGraph.arcs[i].endLabel], jsonGraph.arcs[i].maxCapacity);
+            }
+
+            for (int i = 0; i < copiedArcs.Length; i++)
+            {
+                for (int j = i; j < copiedArcs.Length; j++)
+                {
+                    if (copiedArcs[i].Start == copiedArcs[j].End && copiedArcs[i].End == copiedArcs[j].Start)
+                    {
+                        copiedArcs[i].ReverseArc = copiedArcs[j];
+                        copiedArcs[j].ReverseArc = copiedArcs[i];
+                        break;
+                    }
+
+                }
             }
 
             foreach (Node n in copiedNodes)

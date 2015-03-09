@@ -11,5 +11,6 @@ namespace Effizienze_Graphentheorie.DataExport
         public int startLabel;
         public int endLabel;
         public int maxCapacity;
+        public int reverse;
     }
 }
